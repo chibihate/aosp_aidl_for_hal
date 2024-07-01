@@ -1,0 +1,27 @@
+cc_binary {
+    name: "android.hardware.hello-service",
+    vendor: true,
+    relative_install_path: "hw",
+    init_rc: ["hello-default.rc"],
+    vintf_fragments: ["hello-default.xml"],
+
+    srcs: [
+        "Hello.cpp",
+        "main.cpp",
+    ],
+
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+
+    shared_libs: [
+        "libbase",
+        "liblog",
+        "libhardware",
+        "libbinder_ndk",
+        "libbinder",
+        "libutils",
+        "android.hardware.hello-V1-ndk",
+    ],
+}

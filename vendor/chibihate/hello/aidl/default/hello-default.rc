@@ -1,0 +1,7 @@
+on post-fs-data
+    mkdir /data/vendor/chibihate 0755 root root
+    write /data/vendor/chibihate/hello.txt ""
+service vendor.chibihate.hello-default /vendor/bin/hw/android.hardware.hello-service
+    class hal
+    user root
+    group root
