@@ -26,12 +26,26 @@ make -j$(nproc)
 ```
 4. Clone project into aosp workspace
 
-5. Add vendor config to your device descriptor make file (```device/generic/goldfish/car/sdk_car_x86_64.mk```)
+5. Writing an AIDL client
+* AIDL clients must declare themselves in the compatibility matrix in ```hardware/interfaces/compatibility_matrices/compatibility_matrix.current.xml``` and ```hardware/interfaces/compatibility_matrices/compatibility_matrix.7.xml``` OR declare in device ```device/generic/goldfish/compatibility_matrix.xml```
+```
+    <hal format="aidl" optional="true">
+        <name>android.hardware.hello</name>
+        <version>1</version>
+        <interface>
+            <name>IHello</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+```
+
+
+6. Add vendor config to your device descriptor make file (```device/generic/goldfish/car/sdk_car_x86_64.mk```)
 ```
 $(call inherit-product, vendor/chibihate/config.mk)
 ```
 
-6. Define SELinux policy for HAL service
+7. Define SELinux policy for HAL service
 * Declare attribute in
 ```system/sepolicy/public/attributes``` and ```system/sepolicy/prebuilts/api/33.0/public/attributes``` for current version
 ```
@@ -72,7 +86,7 @@ binder_use(hal_hello_server);
 ))
 ```
 
-* Define default domain with a new file created in ```system/sepolicy/vendor/hal_hello_default.te```
+* Define default domain with a new file created in ```system/sepolicy/vendor/hal_hello_default.te``` OR ```device/generic/goldfish/sepolicy/common/hal_hello_default.te```
 ```
 # Define the service domain
 type hal_hello_default, domain;
@@ -80,29 +94,31 @@ type hal_hello_default_exec, exec_type, vendor_file_type, file_type;
 
 # Allow init to transition to the service domain
 init_daemon_domain(hal_hello_default);
+# platform_app act as client for hal_hello
 hal_client_domain(platform_app, hal_hello);
+# hal_hello_default act as server for hal_hello
 hal_server_domain(hal_hello_default, hal_hello);
 
 # Allow the service to execute the binary
 allow hal_hello_default vendor_data_file:file rw_file_perms;
 ```
 
-* Add a new label in ```system/sepolicy/vendor/file_contexts```
+* Add a new label in ```system/sepolicy/vendor/file_contexts```  OR ```device/generic/goldfish/sepolicy/common/file_contexts```
 ```
 /(vendor|system/vendor)/bin/hw/android\.hardware\.hello-service               u:object_r:hal_hello_default_exec:s0
 ```
 
-7. Build
+8. Build
 ```
 mmm vendor/chibihate/hello
-m
+make -j$(nproc)
 ```
 
-8. Start emulator
+9. Start emulator
 ```
 emulator -verbose -show-kernel -writable-system -gpu swiftshader_indirect -no-audio -wipe-data -memory 8192 -cores 4
 ```
-9. Result
+10. Result
 ![Application](Application.png)
 ![Service](Service.png)
 
